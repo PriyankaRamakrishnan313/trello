@@ -1,0 +1,117 @@
+package mainprog;
+import java.util.concurrent.TimeUnit;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
+import org.openqa.selenium.By;
+import org.openqa.selenium.Point;
+public class mainprogram {
+@BeforeTest
+public void openbrowser()
+
+{    
+//Web driver setup and login
+       WebDriver driver=new ChromeDriver();
+       System.setProperty("webdriver.chrome.driver","C:\\Users\\name\\Desktop\\chromedriver.exe");
+       driver.get("https://trello.com/en/login");
+       driver.manage().window().maximize();
+       driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+       driver.findElement(By.id("user")).sendKeys("priyanka3131998@gmail.com");
+       
+//password encryption
+       String actualPwd= "Password";
+       byte[] encodedPwd = Base64.getEncoder().encode(actualPwd.getBytes());
+       byte[] decodedPwd = Base64.getDecoder().decode(encodedPwd.getBytes());
+       driver.findElement(By.id("password")).sendKeys(decodedPwd);
+       driver.findElement(By.xpath("//span[text()='Log in']")).click();
+       driver.manage().timeouts().implicitlyWait(5,TimeUnit.SECONDS);
+}
+
+@Test
+ public void operations() throws Exception
+ {   
+  //board creation
+       driver.findElement(By.xpath("//span[text()='Create new board']")).click();
+       driver.manage().timeouts().implicitlyWait(2,TimeUnit.SECONDS);
+       String titleExpected="My Board"
+       driver.findElement(By.xpath("//input[@type='text']")).sendKeys(titleExpected);
+       driver.findElement(By.xpath("//button[text()='Create']")).click();
+       String titleActual=driver.findElement(By.xpath("//input[@value='My board']")).getAttribute("value");
+       
+  //board name assertion
+       assertEquals(titleExpected,titleActual);  
+           
+  //List creation method
+        static void listCreationMethod(String listName)
+        {
+        driver.findElement(By.xpath("//span[text()='Add another list']")).click();
+        driver.findElement(By.name("name")).sendKeys(listName);
+        driver.findElement(By.xpath("//input[@value='Add list']")).click();
+         } 
+        String list1Expected="List A";
+        String list2Expected="List B"; 
+         
+   //List A and B creation     
+         listCreationMethod(list1Expected);
+         listCreationMethod(list2Expected);
+          
+   // List A assertion
+        String list1Actual= driver.findElement(By.xpath("//h2[text()='List A']")).getText();
+        assertEquals(list1Expected,list1Actual);
+        
+   //List B assertion
+        String list2Actual= driver.findElement(By.xpath("//h2[text()='List B']")).getText();
+        assertEquals(list2Expected,list2Actual);
+          
+   //Adding a card to list A
+         driver.findElement(By.xpath("//span[text()='Add a card']")).get(3).click();
+         String cardName="Card name";
+         driver.findElement(By.xpath("//textarea[@placeholder='Enter a title for this card…']")).sendKeys(cardName);
+         
+   //Card name assertion
+         String cardNameActual= driver.findElement(By.xpath("//span[text()='Card name']")).getText();
+         assertEquals(cardName,cardNameActual);
+          
+   //Drag and drop the card from List A to List B
+          Actions builder = new Actions(driver);
+		      WebElement from = driver.findElement(By.linkText("https://trello.com/c/7t08tIqm/2-cardname"));
+		      WebElement to = driver.findElement(By.xpath("//span[text()='Add a card']")).get(4);	 
+	   	    builder.dragAndDrop(from, to).perform();
+          
+	 //Assetion to check whether card is drag and dropped to list B by clicking on that list
+	   	  driver.findElement(By.linkText("https://trello.com/c/7t08tIqm/2-cardname")).click();
+	   	  String Currentlist=driver.findElement(By.xpath("//a[text()='List B']")).getText();
+	   	  assertEquals(list2Expected,Currentlist);
+        
+   //To get x and y coordinates of dropped card
+	   	   WebElement dropppedCard= driver.findElement(By.linkText("https://trello.com/c/7t08tIqm/2-cardname"));
+	   	   Point location = dropppedCard.getLocation();
+         System.out.println("X coordinate" + location.getX());
+         System.out.println("Y coordinate: " + location.getY())
+         
+   //Logging out 
+         driver.findElement(By.xpath("//span[@title='Priyanka Ramakrishnan (priyankaramakrishnan)']")).click();
+         driver.findElement(By.xpath("//span[text()='Log out']")).click();
+         driver.manage().timeouts().implicitlyWait(5,TimeUnit.SECONDS);
+         
+   // Assertion to check whether trello is logged out
+        String expectedLogoutText="Log out of your Atlassian account";
+        String logoutText= driver.findElement(By.xpath("//h5[text()='Log out of your Atlassian account']")).getText();
+        assertEquals(expectedLogoutText,logoutText);
+       
+@AfterTest
+public void closebrowser()
+{
+driver.close();
+driver.quit();     
+}
+}
+
+
+ 
